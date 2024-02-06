@@ -1,0 +1,128 @@
+//
+//  WhatRtheOddsApp.swift
+//  WhatRtheOdds
+//
+//  Created by Auguste Emond on 2/2/24.
+//
+
+import UIKit
+
+
+class WhatRtheOddsViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
+
+    @IBOutlet weak var numberWheel: UIPickerView!
+    @IBOutlet weak var spinButton: UIButton!
+
+    let numberRanges = [(1...2), (1...5), (1...10), (1...20), (1...50), (1...100), (1...1000)]
+    var selectedNumber: Int?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        numberWheel.delegate = self
+        numberWheel.dataSource = self
+        applyBlackAndWhiteStyle()
+        
+    }
+
+    func applyBlackAndWhiteStyle() {
+        view.backgroundColor = .black
+        numberWheel.backgroundColor = .white
+        numberWheel.tintColor = .black
+        spinButton.backgroundColor = .black
+        spinButton.setTitleColor(.white, for: .normal)
+    }
+
+    @IBAction func spinButtonTapped(_ sender: Any) {
+        guard let selectedRange = numberRanges[numberWheel.selectedRow(inComponent: 0)].randomElement() else {
+            return
+        }
+
+        selectedNumber = selectedRange
+
+        // Basic spinning animation
+        UIView.animate(withDuration: 2.0, animations: {
+            self.numberWheel.transform = CGAffineTransform(rotationAngle: .pi * 2.0)
+        }) { _ in
+            self.numberWheel.transform = CGAffineTransform.identity
+            print("Selected Number: \(self.selectedNumber!)")
+        }
+    }
+
+    // MARK: - UIPickerViewDataSource methods
+
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        return numberRanges.count
+    }
+
+    // MARK: - UIPickerViewDelegate methods
+
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        let range = numberRanges[row]
+        return "(\(range.lowerBound)-\(range.upperBound))"
+    }
+}
+
+
+//
+//  ContentView.swift
+//  WhatRtheOdds
+//
+//  Created by Auguste Emond on 2/2/24.
+//
+
+import SwiftUI
+
+struct ContentView: View {
+    @State private var selectedNumber: Int?
+    @State private var selectedRangeIndex = 0
+
+    let numberRanges = [(1...2), (1...5), (1...10), (1...20), (1...50), (1...100), (1...1000)]
+
+    var body: some View {
+        VStack {
+            // Your SwiftUI content here
+            
+            Text("Selected Number: \(selectedNumber ?? 0)")
+            
+            Picker("Number Range", selection: $selectedRangeIndex) {
+                ForEach(Array(numberRanges.enumerated()), id: \.offset) { (index, range) in
+                    let lowerBoundString = String(range.lowerBound)
+                    let upperBoundString = String(range.upperBound)
+                    Text("(\(lowerBoundString)-\(upperBoundString))")
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            
+            Button("Spin") {
+                spinButtonTapped()
+            }
+        }
+        .background(Color.black)
+        .foregroundColor(.white)
+    }
+
+    func spinButtonTapped() {
+        guard let selectedRange = numberRanges[selectedRangeIndex].randomElement() else {
+            return
+        }
+
+        selectedNumber = selectedRange
+
+        // Basic spinning animation
+        // Add your animation code here
+        print("Selected Number: \(selectedNumber!)")
+    }
+}
+
+@main
+struct YourApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
